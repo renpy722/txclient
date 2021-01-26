@@ -74,7 +74,7 @@ public class ClientBootstrap {
                 GlobalConnectSuccess = true;
                 ch.closeFuture().sync();
             }catch (Exception e){
-
+                e.printStackTrace();
             }finally {
                 workGroup.shutdownGracefully();
             }
@@ -86,7 +86,7 @@ public class ClientBootstrap {
      * @param regireDetail
      * @param time
      */
-    public void addRegisterSub(RegireDetail regireDetail, int time){
+    public boolean addRegisterSub(RegireDetail regireDetail, int time){
         long endTime = System.currentTimeMillis()+1000*time;
         while (!GlobalConnectSuccess && System.currentTimeMillis()<=endTime){
             try {
@@ -100,7 +100,9 @@ public class ClientBootstrap {
             messageObject.setData(regireDetail);
             messageObject.setMessageType(MessageType.LimitRateRegire);
             ClientChennelUtil.sendMessage(messageObject);
+            return true;
         }
+        return false;
     }
 
     public static class ClientBootstrapBuilder{

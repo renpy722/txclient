@@ -1,5 +1,6 @@
 package cn.ren.hanles.txclient.submod;
 
+import cn.ren.hanles.txclient.util.Const;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,9 @@ public class EventSub {
 
     private static Map<EventType, List<SubjectDetail>> contain = new ConcurrentHashMap<>();
 
+    public static Map<EventType, List<SubjectDetail>> getContain(){
+        return contain;
+    }
 
     /**
      * 事件订阅
@@ -64,11 +68,11 @@ public class EventSub {
     public static <T> void pushSubject(EventType type,T content){
 
         try{
-            LOGGER.info("事件总线-推送事件，类型：{}内容：{}",type,gson.toJson(content));
 
             List<SubjectDetail> list = contain.get(type);
             if (list!=null && list.size()>0){
-                list.forEach(item -> item.getSubProxy().writeAndFlush(content+"\r\n"));
+                LOGGER.info("事件总线-推送事件，类型：{}内容：{}",type,gson.toJson(content));
+                list.forEach(item -> item.getSubProxy().writeAndFlush(content+ Const.sendFlag));
             }
         }catch (Exception e){
             LOGGER.warn("事件发布失败：",e);

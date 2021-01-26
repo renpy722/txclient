@@ -13,6 +13,6 @@ public class ClientChennelUtil {
 
     public static void sendMessage(MessageObject messageObject){
         String content = gson.toJson(messageObject);
-        channel.writeAndFlush(content+"\r\n");
+        channel.writeAndFlush(content+Const.sendFlag);
     }
 }
