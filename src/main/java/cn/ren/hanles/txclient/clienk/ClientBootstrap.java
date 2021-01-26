@@ -17,6 +17,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,8 +35,14 @@ public class ClientBootstrap {
 
     private Gson gson = new Gson();
 
-    private static Channel channel = null;
+    //用户自动注册的注册实体
+    private RegireDetail regireObj;
+    //连接恢复时是否进行事件自动注册
+    private boolean connectRecoverAutoRegire = false;
 
+    public void setConnectRecoverAutoRegire(boolean connectRecoverAutoRegire) {
+        this.connectRecoverAutoRegire = connectRecoverAutoRegire;
+    }
 
     private void setPort(int port) {
         this.port = port;
@@ -51,7 +58,7 @@ public class ClientBootstrap {
 
     public void start(){
         new Thread(()->{
-            EventLoopGroup workGroup = new NioEventLoopGroup();
+            EventLoopGroup workGroup = new NioEventLoopGroup(1);
             try{
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(workGroup)
@@ -68,17 +75,34 @@ public class ClientBootstrap {
                             }
                         });
 
-                ChannelFuture connect = bootstrap.connect(host, port);
-                Channel ch = connect.sync().channel();
-                ClientChennelUtil.setChannel(ch);
-                GlobalConnectSuccess = true;
-                ch.closeFuture().sync();
+
+                while (true){
+                    connectServer(bootstrap);
+                    Thread.sleep(5000);
+                }
+
             }catch (Exception e){
                 e.printStackTrace();
             }finally {
                 workGroup.shutdownGracefully();
             }
         }).start();
+    }
+
+    private void connectServer(Bootstrap bootstrap) throws InterruptedException {
+        try{
+            ChannelFuture connect = bootstrap.connect(host, port);
+            Channel ch = connect.sync().channel();
+            ClientChennelUtil.setChannel(ch);
+            GlobalConnectSuccess = true;
+            if (connectRecoverAutoRegire && Objects.nonNull(regireObj)){
+                LOGGER.info("连接恢复，自动进行事件注册");
+                addRegisterSub(regireObj,2);
+            }
+            ch.closeFuture().sync();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -100,6 +124,8 @@ public class ClientBootstrap {
             messageObject.setData(regireDetail);
             messageObject.setMessageType(MessageType.LimitRateRegire);
             ClientChennelUtil.sendMessage(messageObject);
+            //注册成功时备份regireObj
+            regireObj = regireDetail;
             return true;
         }
         return false;
@@ -111,6 +137,8 @@ public class ClientBootstrap {
 
         private String host;
 
+        private boolean autoRegire;
+
         public ClientBootstrapBuilder setPort(int port) {
             this.port = port;
             return this;
@@ -121,6 +149,10 @@ public class ClientBootstrap {
             return this;
         }
 
+        public void setAutoRegire(boolean autoRegire) {
+            this.autoRegire = autoRegire;
+        }
+
         public ClientBootstrap build(){
             ClientBootstrap obj = new ClientBootstrap();
             if (this.host!=null){
@@ -128,6 +160,9 @@ public class ClientBootstrap {
             }
             if (this.port>0){
                 obj.setPort(this.port);
+            }
+            if (autoRegire){
+                obj.setConnectRecoverAutoRegire(autoRegire);
             }
             return obj;
         }
