@@ -1,12 +1,17 @@
+import cn.ren.hanles.txclient.submod.EventSub;
+import cn.ren.hanles.txclient.submod.EventType;
+import cn.ren.hanles.txclient.util.ServerChannelUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
+import io.netty.channel.internal.ChannelUtils;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 
 public class EchoServer {
 
@@ -41,10 +46,32 @@ public class EchoServer {
 			ChannelFuture f = b.bind(port).sync();
 
 			System.out.println("EchoServer已启动，端口：" + port);
-
 			// 等待服务器 socket 关闭 。
 			// 在这个例子中，这不会发生，但你可以优雅地关闭你的服务器。
-			f.channel().closeFuture().sync();
+			/*new Thread(()->{
+				while (true){
+					try {
+						Thread.sleep(2000);
+						ServerChannelUtil.getAllChannel().keySet().forEach(item ->{
+							ServerChannelUtil.getChannel(item).writeAndFlush("server send message:"+UUID.randomUUID().toString()+"\r\n");
+						});
+						System.out.println("一次触发完成");
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();*/
+			Channel channel = f.channel();
+			while (true){
+				Thread.sleep(3000);
+				EventSub.pushSubject(EventType.RateLimit,"更新限流配置 1->"+ new Random(10).nextInt());
+				if (1==0){
+					break;
+				}
+			}
+
+			channel.closeFuture().sync();
+			System.out.println("-----");
 		} finally {
 
 			// 优雅的关闭
