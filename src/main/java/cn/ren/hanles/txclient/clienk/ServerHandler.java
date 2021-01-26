@@ -3,6 +3,7 @@ package cn.ren.hanles.txclient.clienk;
 import cn.ren.hanles.txclient.entity.MessageObject;
 import cn.ren.hanles.txclient.entity.MessageType;
 import cn.ren.hanles.txclient.submod.EventSub;
+import cn.ren.hanles.txclient.submod.EventType;
 import cn.ren.hanles.txclient.submod.RegireDetail;
 import cn.ren.hanles.txclient.submod.SubjectDetail;
 import cn.ren.hanles.txclient.util.Const;
@@ -13,6 +14,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @ChannelHandler.Sharable
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
@@ -60,5 +65,21 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOGGER.warn("连接异常：{}",cause.getMessage());
+        try{
+            LOGGER.info("连接异常尝试移除事件");
+            Map<EventType, List<SubjectDetail>> contain = EventSub.getContain();
+            contain.values().stream().forEach(list ->{
+                Iterator<SubjectDetail> iterator = list.iterator();
+                while (iterator.hasNext()){
+                    SubjectDetail next = iterator.next();
+                    if (next.getSubProxy().equals(ctx)){
+                        iterator.remove();
+                        LOGGER.info("连接异常尝试移除事件，移除成功");
+                    }
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
