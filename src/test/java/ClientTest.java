@@ -7,7 +7,8 @@ public class ClientTest {
     public static void main(String[] args) throws InterruptedException {
 
         ClientBootstrap.ClientBootstrapBuilder builder = new ClientBootstrap.ClientBootstrapBuilder();
-        ClientBootstrap clientBootstrap = builder.setPort(9090).setHost("127.0.0.1").build();
+        ClientBootstrap clientBootstrap = builder.setPort(9090).setHost("127.0.0.1").
+                setAutoRegire(true).setReConnectTimes(10).build();
 
         clientBootstrap.start();
 

@@ -6,6 +6,8 @@ import io.netty.channel.Channel;
 
 public class ClientChennelUtil {
     private static Channel channel;
+    public static volatile boolean GlobalConnectSuccess = false;
+
     private static Gson gson = new Gson();
     public static void setChannel(Channel channel) {
         ClientChennelUtil.channel = channel;

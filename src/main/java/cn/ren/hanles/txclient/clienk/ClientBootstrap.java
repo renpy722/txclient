@@ -27,7 +27,6 @@ public class ClientBootstrap {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientBootstrap.class);
 
-    public volatile boolean GlobalConnectSuccess = false;
 
     private int port;
 
@@ -39,6 +38,14 @@ public class ClientBootstrap {
     private RegireDetail regireObj;
     //连接恢复时是否进行事件自动注册
     private boolean connectRecoverAutoRegire = false;
+    //自动重连次数，默认3次
+    private int reConnectTimes = 3;
+    //当前执行重连的次数
+    private int nowReConnectTime =0;
+
+    public void setReConnectTimes(int reConnectTimes) {
+        this.reConnectTimes = reConnectTimes;
+    }
 
     public void setConnectRecoverAutoRegire(boolean connectRecoverAutoRegire) {
         this.connectRecoverAutoRegire = connectRecoverAutoRegire;
@@ -77,6 +84,9 @@ public class ClientBootstrap {
 
 
                 while (true){
+                    if (nowReConnectTime>=reConnectTimes){
+                        break;
+                    }
                     connectServer(bootstrap);
                     Thread.sleep(5000);
                 }
@@ -91,17 +101,32 @@ public class ClientBootstrap {
 
     private void connectServer(Bootstrap bootstrap) throws InterruptedException {
         try{
+
             ChannelFuture connect = bootstrap.connect(host, port);
             Channel ch = connect.sync().channel();
             ClientChennelUtil.setChannel(ch);
-            GlobalConnectSuccess = true;
-            if (connectRecoverAutoRegire && Objects.nonNull(regireObj)){
-                LOGGER.info("连接恢复，自动进行事件注册");
-                addRegisterSub(regireObj,2);
-            }
+
+            new Thread(()->{
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (ch.isActive() && ch.isOpen()){
+                    nowReConnectTime=0;
+                }
+                if (ch.isActive() && ch.isOpen() & connectRecoverAutoRegire && Objects.nonNull(regireObj)){
+                    LOGGER.info("连接成功，自动进行事件注册");
+                    addRegisterSub(regireObj,2);
+                }else {
+                    LOGGER.error("未检测到连接恢复，或者没有配置事件注册，取消自动事件注册恢复");
+                }
+            }).start();
+
             ch.closeFuture().sync();
         }catch (Exception e){
-            e.printStackTrace();
+            nowReConnectTime+=1;
+            LOGGER.info("5秒后尝试连接服务器........");
         }
     }
 
@@ -112,14 +137,14 @@ public class ClientBootstrap {
      */
     public boolean addRegisterSub(RegireDetail regireDetail, int time){
         long endTime = System.currentTimeMillis()+1000*time;
-        while (!GlobalConnectSuccess && System.currentTimeMillis()<=endTime){
+        while (!ClientChennelUtil.GlobalConnectSuccess && System.currentTimeMillis()<=endTime){
             try {
                 TimeUnit.MILLISECONDS.sleep(20);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        if (GlobalConnectSuccess){
+        if (ClientChennelUtil.GlobalConnectSuccess){
             MessageObject<RegireDetail> messageObject = new MessageObject<>();
             messageObject.setData(regireDetail);
             messageObject.setMessageType(MessageType.LimitRateRegire);
@@ -139,6 +164,13 @@ public class ClientBootstrap {
 
         private boolean autoRegire;
 
+        private int reConnectTimes;
+
+        public ClientBootstrapBuilder setReConnectTimes(int reConnectTimes) {
+            this.reConnectTimes = reConnectTimes;
+            return this;
+        }
+
         public ClientBootstrapBuilder setPort(int port) {
             this.port = port;
             return this;
@@ -149,8 +181,9 @@ public class ClientBootstrap {
             return this;
         }
 
-        public void setAutoRegire(boolean autoRegire) {
+        public ClientBootstrapBuilder setAutoRegire(boolean autoRegire) {
             this.autoRegire = autoRegire;
+            return this;
         }
 
         public ClientBootstrap build(){
@@ -163,6 +196,9 @@ public class ClientBootstrap {
             }
             if (autoRegire){
                 obj.setConnectRecoverAutoRegire(autoRegire);
+            }
+            if (reConnectTimes>0){
+                obj.setReConnectTimes(reConnectTimes);
             }
             return obj;
         }

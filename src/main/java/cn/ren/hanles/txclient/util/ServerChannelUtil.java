@@ -1,6 +1,7 @@
 package cn.ren.hanles.txclient.util;
 
 import cn.ren.hanles.txclient.entity.MessageObject;
+import cn.ren.hanles.txclient.entity.MessageType;
 import cn.ren.hanles.txclient.submod.EventSub;
 import cn.ren.hanles.txclient.submod.EventType;
 import cn.ren.hanles.txclient.submod.SubjectDetail;
@@ -20,9 +21,11 @@ public class ServerChannelUtil {
      * 向注册指定事件的某个Id的客户端发送字符串消息
      * @param eventType
      * @param clientId
-     * @param message
      */
-    public static boolean sendStringMessage(EventType eventType, String clientId, MessageObject<String> message){
+    public static boolean sendStringMessage(EventType eventType, String clientId, String messageContent){
+        MessageObject<String> message = new MessageObject<>();
+        message.setMessageType(MessageType.NormalStringMessage);
+        message.setData(messageContent);
         List<SubjectDetail> detailList = EventSub.getContain().get(eventType);
         if (detailList!=null){
             List<SubjectDetail> oneList = detailList.stream().filter(i -> i.getId().equals(clientId)).collect(Collectors.toList());
