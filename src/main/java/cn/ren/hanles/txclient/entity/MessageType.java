@@ -4,7 +4,9 @@ import cn.ren.hanles.txclient.submod.RegireDetail;
 public enum  MessageType {
 
     LimitRateRegire("regire",RegireDetail.class,"事件注册"),
-    NormalStringMessage("normalStr",String.class,"普通字符串消息");
+    NormalStringMessage("normalStr",String.class,"普通字符串消息"),
+    LimitRateChange("limitChange",LimitChangeEntity.class,"限流配置更新"),
+    QpsReport("qpsReport",QpsReport.class,"客户端QPS上报");
 
     private String type;
     private Class clazz;

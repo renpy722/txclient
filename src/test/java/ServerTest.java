@@ -1,4 +1,7 @@
 import cn.ren.hanles.txclient.clienk.ServeBootstrap;
+import cn.ren.hanles.txclient.entity.LimitChangeEntity;
+import cn.ren.hanles.txclient.entity.MessageObject;
+import cn.ren.hanles.txclient.entity.MessageType;
 import cn.ren.hanles.txclient.submod.EventSub;
 import cn.ren.hanles.txclient.submod.EventType;
 
@@ -17,7 +20,13 @@ public class ServerTest {
 
         new Thread(()->{
             while (true) {
-                EventSub.pushSubject(EventType.RateLimit, "限流变更: " + new Random().nextInt(10) + "->" + new Random().nextInt(100));
+                MessageObject<LimitChangeEntity> messageObject = new MessageObject<>();
+                messageObject.setMessageType(MessageType.LimitRateChange);
+                LimitChangeEntity entity = new LimitChangeEntity();
+                entity.setLimitKey("testApi");
+                entity.setLimitCount(200);
+                messageObject.setData(entity);
+                EventSub.pushSubject(EventType.RateLimit, messageObject);
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {

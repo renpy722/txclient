@@ -2,6 +2,7 @@ package cn.ren.hanles.txclient.clienk;
 
 import cn.ren.hanles.txclient.entity.MessageObject;
 import cn.ren.hanles.txclient.entity.MessageType;
+import cn.ren.hanles.txclient.entity.QpsReport;
 import cn.ren.hanles.txclient.submod.EventSub;
 import cn.ren.hanles.txclient.submod.EventType;
 import cn.ren.hanles.txclient.submod.RegireDetail;
@@ -31,7 +32,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         LOGGER.info("客户端请求连接");
-        ctx.writeAndFlush("connect to server success ....."+ Const.sendFlag);
+        MessageObject<String> init = new MessageObject<>();
+        init.setMessageType(MessageType.NormalStringMessage);
+        init.setData("connect to server success .....");
+        ctx.writeAndFlush(gson.toJson(init)+ Const.sendFlag);
     }
 
 
@@ -43,13 +47,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
      */
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
         LOGGER.debug(s);
-        MessageObject<RegireDetail> messageObject = gson.fromJson(s, new TypeToken<MessageObject<RegireDetail>>(){}.getType());
+        MessageObject messageObject = gson.fromJson(s, new TypeToken<MessageObject>(){}.getType());
         MessageType messageType = messageObject.getMessageType();
         if (messageType==MessageType.NormalStringMessage){
             LOGGER.info("接收到普通消息"+messageObject.getData().toString());
         }else if (messageType==MessageType.LimitRateRegire){
             LOGGER.info("接收到事件消息");
-            RegireDetail  regireDetail = messageObject.getData();
+            RegireDetail  regireDetail = gson.fromJson(gson.toJson(messageObject.getData()),RegireDetail.class);
             SubjectDetail subjectDetail = new SubjectDetail();
             subjectDetail.setDesc(regireDetail.getDesc());
             subjectDetail.setId(regireDetail.getId());
@@ -57,6 +61,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             subjectDetail.setSubProxy(channelHandlerContext);
             boolean result = EventSub.subjectTopic(regireDetail.getEventType(), subjectDetail);
             LOGGER.info("事件注册结果：{}",result);
+        }else if (messageType==MessageType.QpsReport){
+            QpsReport qpsReport = gson.fromJson(gson.toJson(messageObject.getData()),QpsReport.class);
+            LOGGER.info("接收到qps上报消息：客户ID：{}，qps：{}",qpsReport.getClientId(),qpsReport.getQps());
         }else {
             LOGGER.warn("未知类型消息，丢弃:{}",gson.toJson(messageObject));
         }

@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * server主动向client通信使用的工具类，目前仅支持字符串消息通信，后续其他对象类型消息通信时，扩展此处的方法，扩展MessageType进行支持
+ */
 public class ServerChannelUtil {
 
     private static final Gson gson = new Gson();

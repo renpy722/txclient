@@ -1,5 +1,6 @@
 package cn.ren.hanles.txclient.submod;
 
+import cn.ren.hanles.txclient.entity.MessageObject;
 import cn.ren.hanles.txclient.util.Const;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * 事件总线
+ * 事件总线，server进行事件push更新操作的实体、client进行事件注册的操作实体
  */
 public class EventSub {
 
@@ -65,14 +66,14 @@ public class EventSub {
      * @param content
      * @param <T>
      */
-    public static <T> void pushSubject(EventType type,T content){
+    public static <T> void pushSubject(EventType type, MessageObject content){
 
         try{
 
             List<SubjectDetail> list = contain.get(type);
             if (list!=null && list.size()>0){
                 LOGGER.info("事件总线-推送事件，类型：{}内容：{}",type,gson.toJson(content));
-                list.forEach(item -> item.getSubProxy().writeAndFlush(content+ Const.sendFlag));
+                list.forEach(item -> item.getSubProxy().writeAndFlush(gson.toJson(content)+ Const.sendFlag));
             }
         }catch (Exception e){
             LOGGER.warn("事件发布失败：",e);

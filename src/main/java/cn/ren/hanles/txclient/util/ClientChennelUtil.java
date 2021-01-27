@@ -4,6 +4,9 @@ import cn.ren.hanles.txclient.entity.MessageObject;
 import com.google.gson.Gson;
 import io.netty.channel.Channel;
 
+/**
+ * 客户端向服务端进行主动消息通信的实体
+ */
 public class ClientChennelUtil {
     private static Channel channel;
     public static volatile boolean GlobalConnectSuccess = false;
