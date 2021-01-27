@@ -108,7 +108,7 @@ public class ClientBootstrap {
 
             new Thread(()->{
                 try {
-                    Thread.sleep(6000);
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

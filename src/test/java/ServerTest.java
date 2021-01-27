@@ -23,7 +23,7 @@ public class ServerTest {
                 MessageObject<LimitChangeEntity> messageObject = new MessageObject<>();
                 messageObject.setMessageType(MessageType.LimitRateChange);
                 LimitChangeEntity entity = new LimitChangeEntity();
-                entity.setLimitKey("testApi");
+                entity.setLimitKey("cn.rtl.simple.limitTest.LimitTestController_testRate");
                 entity.setLimitCount(200);
                 messageObject.setData(entity);
                 EventSub.pushSubject(EventType.RateLimit, messageObject);

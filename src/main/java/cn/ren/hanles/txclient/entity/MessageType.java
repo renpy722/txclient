@@ -1,7 +1,7 @@
 package cn.ren.hanles.txclient.entity;
 import cn.ren.hanles.txclient.submod.RegireDetail;
 
-public enum  MessageType {
+public enum MessageType {
 
     LimitRateRegire("regire",RegireDetail.class,"事件注册"),
     NormalStringMessage("normalStr",String.class,"普通字符串消息"),
