@@ -10,6 +10,8 @@ import io.netty.channel.Channel;
 public class ClientChennelUtil {
     private static Channel channel;
     public static volatile boolean GlobalConnectSuccess = false;
+    //注册成功状态
+    public static volatile boolean GlobalRegireSuccess = false;
 
     private static Gson gson = new Gson();
     public static void setChannel(Channel channel) {

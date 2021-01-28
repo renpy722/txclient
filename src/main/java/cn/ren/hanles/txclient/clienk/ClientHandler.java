@@ -51,6 +51,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ClientChennelUtil.GlobalConnectSuccess = false;
+        ClientChennelUtil.GlobalRegireSuccess = false;
         LOGGER.warn("连接异常：{}",cause.getMessage());
         cause.printStackTrace();
     }
@@ -58,6 +59,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         ClientChennelUtil.GlobalConnectSuccess = false;
+        ClientChennelUtil.GlobalRegireSuccess = false;
         super.channelInactive(ctx);
     }
 

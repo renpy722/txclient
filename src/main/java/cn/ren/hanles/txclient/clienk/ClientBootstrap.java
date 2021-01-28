@@ -115,6 +115,9 @@ public class ClientBootstrap {
                 if (ch.isActive() && ch.isOpen()){
                     nowReConnectTime=0;
                 }
+                if (ClientChennelUtil.GlobalRegireSuccess){
+                    return;
+                }
                 if (ch.isActive() && ch.isOpen() & connectRecoverAutoRegire && Objects.nonNull(regireObj)){
                     LOGGER.info("连接成功，自动进行事件注册");
                     addRegisterSub(regireObj,2);
@@ -136,6 +139,9 @@ public class ClientBootstrap {
      * @param time
      */
     public boolean addRegisterSub(RegireDetail regireDetail, int time){
+        if (ClientChennelUtil.GlobalRegireSuccess){
+            return ClientChennelUtil.GlobalRegireSuccess;
+        }
         long endTime = System.currentTimeMillis()+1000*time;
         while (!ClientChennelUtil.GlobalConnectSuccess && System.currentTimeMillis()<=endTime){
             try {
@@ -151,6 +157,7 @@ public class ClientBootstrap {
             ClientChennelUtil.sendMessage(messageObject);
             //注册成功时备份regireObj
             regireObj = regireDetail;
+            ClientChennelUtil.GlobalRegireSuccess = true;
             return true;
         }
         return false;
